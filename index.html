@@ -1,0 +1,396 @@
+<!doctype html>
+<html lang="ar">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Lucky Draw by Amjad Al-Aqarbeh — Ashraf Mobile</title>
+<style>
+  :root{
+    --g1:#083b20; --g2:#0f7a3a; --accent:#ffd54a; --card:#ffffff;
+    --glass: rgba(255,255,255,0.04);
+  }
+  html,body{height:100%;margin:0;font-family: "Segoe UI", Roboto, "Noto Sans Arabic", system-ui;direction:rtl}
+  body{
+    background:linear-gradient(180deg,var(--g1) 0%, #06401f 40%, #042916 100%);
+    color:#fff;display:flex;align-items:center;justify-content:center;padding:20px;
+  }
+
+  /* animated background particles */
+  .bg{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+  .bg .spark{position:absolute;width:220px;height:220px;border-radius:26px;opacity:0.06;
+    background:radial-gradient(circle at 30% 30%, #fff, transparent 30%);filter:blur(20px);
+    animation: drift 18s linear infinite;}
+  .bg .s1{left:3%;top:8%}
+  .bg .s2{right:6%;top:20%;animation-duration:14s}
+  .bg .s3{left:18%;bottom:8%;animation-duration:22s}
+  @keyframes drift{0%{transform:translateY(0)}50%{transform:translateY(-60px)}100%{transform:translateY(0)}}
+
+  .wrap{position:relative;z-index:2;width:100%;max-width:1100px;margin:18px}
+  .card{background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));padding:18px;border-radius:14px;box-shadow:0 12px 40px rgba(2,10,6,0.6);border:1px solid rgba(255,255,255,0.03)}
+  header{display:flex;gap:16px;align-items:center}
+  .badge{background:linear-gradient(180deg,#fff,#f0ffe9);color:var(--g2);width:92px;height:92px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-weight:900;box-shadow:0 8px 20px rgba(0,0,0,0.4)}
+  .title h1{margin:0;font-size:26px;text-shadow:0 6px 20px rgba(15,122,58,0.25)}
+  .title p{margin:4px 0 0;color:rgba(255,255,255,0.85)}
+
+  .grid{display:grid;grid-template-columns:420px 1fr;gap:16px;margin-top:12px}
+  @media (max-width:900px){ .grid{grid-template-columns:1fr} .badge{width:72px;height:72px} }
+
+  /* form */
+  form{display:flex;flex-direction:column;gap:8px}
+  label{font-size:13px;color:#e9f7ec}
+  input[type="text"], input[type="tel"], input[type="number"], input[type="password"]{
+    width:100%;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.03);color:#fff;
+  }
+  .btn{display:inline-flex;align-items:center;justify-content:center;padding:12px 14px;border-radius:12px;border:none;background:linear-gradient(90deg,var(--g2), #0b5a2e);color:#fff;font-weight:700;cursor:pointer;box-shadow:0 8px 20px rgba(11,90,46,0.25)}
+  .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.06)}
+  .muted{color:rgba(255,255,255,0.78);font-size:13px}
+
+  /* mysterious button */
+  .mystery-wrap{display:flex;align-items:center;justify-content:center;gap:10px;flex-direction:column;margin-top:12px}
+  .mystery-btn{
+    width:160px;height:160px;border-radius:50%;background:linear-gradient(180deg,#fffef3,#fff7d9);display:flex;align-items:center;justify-content:center;
+    box-shadow:0 14px 40px rgba(0,0,0,0.45);cursor:pointer;position:relative;overflow:hidden;border:6px solid rgba(255,255,255,0.06)
+  }
+  .mystery-glow{position:absolute;inset:-30%;background:radial-gradient(circle,#ffd54a33,transparent 20%);mix-blend-mode:screen;animation: glow 2.6s linear infinite}
+  @keyframes glow{0%{transform:translateY(-10px)}50%{transform:translateY(10px)}100%{transform:translateY(-10px)}}
+  .mystery-icon{font-size:46px;color:var(--g2);z-index:2}
+  .mystery-hint{font-size:13px;color:rgba(0,0,0,0.5);font-weight:700;margin-top:6px}
+
+  /* prizes area */
+  .prizes{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:12px}
+  @media (max-width:900px){ .prizes{grid-template-columns:repeat(2,1fr)} }
+  .prize-card{background:linear-gradient(180deg,#fff,#fbfff2);padding:10px;border-radius:12px;color:#073a1a;display:flex;gap:10px;align-items:center;box-shadow:0 8px 18px rgba(0,0,0,0.08)}
+  .prize-thumb{width:72px;height:72px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:30px;background:linear-gradient(180deg,#fff,#f1ffe6);border:1px solid rgba(0,0,0,0.03)}
+  .result-panel{margin-top:12px;padding:12px;border-radius:12px;background:linear-gradient(180deg,#fff,#f7fff3);color:#063a1d;box-shadow:0 12px 30px rgba(0,0,0,0.08);display:none}
+  .result-panel h3{margin:0 0 6px}
+  .admin{margin-top:12px}
+
+  footer{margin-top:12px;color:rgba(255,255,255,0.7);font-size:13px;display:flex;justify-content:space-between}
+</style>
+</head>
+<body>
+  <div class="bg" aria-hidden="true">
+    <div class="spark s1"></div>
+    <div class="spark s2"></div>
+    <div class="spark s3"></div>
+  </div>
+
+  <div class="wrap">
+    <div class="card" role="main" aria-live="polite">
+      <header>
+        <div class="badge">ASH<br>R</div>
+        <div class="title">
+          <h1>🎉 Lucky Draw by <span style="font-style:italic">Amjad Al-Aqarbeh</span> 🎉</h1>
+          <p>Ashraf Mobile — سحب الجوائز الخاص بالمحل</p>
+        </div>
+      </header>
+
+      <div class="grid">
+        <!-- left: form & controls -->
+        <aside style="padding-right:6px">
+          <form id="entryForm" autocomplete="off">
+            <label>الاسم الكامل</label>
+            <input id="name" type="text" placeholder="مثال: أحمد العبد" required />
+
+            <label>رقم الهاتف</label>
+            <input id="phone" type="tel" placeholder="مثال: 079XXXXXXXX" required pattern="^[0-9+ ]{6,20}$" />
+
+            <label>قيمة الشراء بالدينار (JD)</label>
+            <input id="amount" type="number" min="0" step="0.01" value="0" required />
+
+            <div style="margin-top:8px;display:flex;gap:8px">
+              <button id="startBtn" class="btn" type="submit">تأهل للسحب</button>
+              <button id="adminBtn" type="button" class="btn ghost">لوحة الإدارة</button>
+            </div>
+            <div class="muted" style="margin-top:6px">يجب أن تكون قيمة المشتريات ≥ 20 JD لتكون مؤهل للسحب. كل رقم مرة واحدة فقط.</div>
+          </form>
+
+          <div class="admin" id="adminArea" style="display:none">
+            <label>كلمة مرور الأدمن</label>
+            <input id="adminPass" type="password" placeholder="كلمة المرور" />
+            <div style="margin-top:8px;display:flex;gap:8px">
+              <button id="unlockAdmin" class="btn ghost">افتح الأدمن</button>
+              <button id="downloadCSV" class="btn ghost">تحميل CSV</button>
+              <button id="wipeData" class="btn ghost" style="background:#b71c1c;color:#fff">مسح البيانات</button>
+            </div>
+            <div class="muted" style="margin-top:6px">الزر مسجل للمالك فقط — كلمة المرور الافتراضية: <strong>amjad2025</strong></div>
+          </div>
+
+          <div style="margin-top:12px">
+            <label>Webhook (اختياري)</label>
+            <input id="webhook" type="text" placeholder="https://yourserver.com/hook" />
+            <div class="muted">إذا عندك سيرفر تستقبل POST، حط الرابط هنا لإرسال نتائج السحوبات.</div>
+          </div>
+
+        </aside>
+
+        <!-- right: mystery button & prizes -->
+        <main style="padding-left:6px">
+          <div id="readyArea">
+            <div class="mystery-wrap">
+              <div class="mystery-btn" id="mysteryBtn" aria-label="زر السحب الغامض" title="زر السحب">
+                <div class="mystery-glow" aria-hidden="true"></div>
+                <div class="mystery-icon">🎁</div>
+              </div>
+              <div class="mystery-hint muted">اضغط الزر الغامض إذا كنت مؤهل — بدون كتابة قديمة</div>
+            </div>
+            <div id="status" style="margin-top:10px" class="muted">لم تبدأ — املأ النموذج وتأكد من قيمة الشراء.</div>
+          </div>
+
+          <div id="resultPanel" class="result-panel" role="status" aria-live="polite">
+            <h3 id="resTitle"></h3>
+            <div id="resBody" style="display:flex;gap:12px;align-items:center;margin-top:8px"></div>
+          </div>
+
+          <div style="margin-top:16px">
+            <h3 style="margin:0 0 8px">الجوائز الممكنة</h3>
+            <div class="prizes" id="prizeList"></div>
+          </div>
+        </main>
+      </div>
+
+      <footer>
+        <div>مصمم بواسطة: Amjad Al-Aqarbeh — Ashraf Mobile</div>
+        <div class="muted">الصفحة تخزن النتائج محليًا لحماية خصوصية الزبائن</div>
+      </footer>
+    </div>
+  </div>
+
+<script>
+/* ========== CONFIG ========== */
+const ADMIN_PASS = 'amjad2025'; // غيّرها لو بدك
+const STORAGE_ENTRIES = 'ashraf_entries_v2';
+const STORAGE_USED = 'ashraf_used_v2';
+
+/* جوائز (12) مع وزن صغير لهاتف ~3% */
+const PRIZES = [
+  {id:'sticker', name:'لزقات حماية (Screen protectors)', weight:12, icon:'🛡️'},
+  {id:'backcase', name:'باك كفر (Phone Back Cover)', weight:12, icon:'📦'},
+  {id:'phone', name:'Smart Phone (Grand Prize)', weight:3, icon:'📱', premium:true},
+  {id:'watch', name:'Smart Watch', weight:8, icon:'⌚', premium:true},
+  {id:'airpods', name:'AirPods', weight:8, icon:'🎧', premium:true},
+  {id:'speaker', name:'Bluetooth Speaker', weight:7, icon:'🔊'},
+  {id:'cables', name:'وصلات شاحن (Cables)', weight:7, icon:'🔌'},
+  {id:'charger', name:'شاحن سريع (Fast Charger)', weight:8, icon:'⚡'},
+  {id:'holder', name:'حامل هاتف (Phone Holder)', weight:7, icon:'📱'},
+  {id:'tempered', name:'Tempered Glass', weight:8, icon:'🪟'},
+  {id:'powerbank', name:'Power Bank', weight:8, icon:'🔋'},
+  {id:'noluck', name:'Better luck next time', weight:7, icon:'😅'}
+];
+
+/* ========== DOM ========== */
+const entryForm = document.getElementById('entryForm');
+const nameInput = document.getElementById('name');
+const phoneInput = document.getElementById('phone');
+const amountInput = document.getElementById('amount');
+const startBtn = document.getElementById('startBtn');
+const mysteryBtn = document.getElementById('mysteryBtn');
+const statusEl = document.getElementById('status');
+const prizeListEl = document.getElementById('prizeList');
+const resPanel = document.getElementById('resultPanel');
+const resTitle = document.getElementById('resTitle');
+const resBody = document.getElementById('resBody');
+const adminBtn = document.getElementById('adminBtn');
+const adminArea = document.getElementById('adminArea');
+const unlockAdmin = document.getElementById('unlockAdmin');
+const adminPassInput = document.getElementById('adminPass');
+const downloadCSV = document.getElementById('downloadCSV');
+const wipeDataBtn = document.getElementById('wipeData');
+const webhookInput = document.getElementById('webhook');
+
+/* ========== HELPERS STORAGE ========== */
+function getEntries(){ try{ return JSON.parse(localStorage.getItem(STORAGE_ENTRIES)||'[]'); }catch(e){return[]} }
+function saveEntries(arr){ localStorage.setItem(STORAGE_ENTRIES, JSON.stringify(arr)); }
+function getUsed(){ try{ return JSON.parse(localStorage.getItem(STORAGE_USED)||'[]'); }catch(e){return[]} }
+function saveUsed(arr){ localStorage.setItem(STORAGE_USED, JSON.stringify(arr)); }
+
+/* ========== UTIL ========== */
+function createPrizeCard(p){
+  const c = document.createElement('div'); c.className='prize-card';
+  c.innerHTML = `<div class="prize-thumb" aria-hidden="true">${p.icon}</div>
+    <div style="flex:1">
+      <div style="font-weight:800">${p.name}</div>
+      <div style="font-size:13px;color:#22663a;margin-top:6px">${p.premium? 'جائزة مميزة':''}</div>
+    </div>`;
+  return c;
+}
+function renderPrizeList(){ prizeListEl.innerHTML=''; PRIZES.forEach(p=> prizeListEl.appendChild(createPrizeCard(p))); }
+renderPrizeList();
+
+/* weighted random */
+function pickWeighted(list){
+  const total = list.reduce((s,x)=> s + (x.weight||1), 0);
+  let r = Math.random()*total;
+  for(const item of list){ r -= (item.weight||1); if(r <= 0) return item; }
+  return list[list.length-1];
+}
+
+/* sounds via WebAudio */
+const audioCtx = (typeof AudioContext !== 'undefined') ? new AudioContext() : null;
+function playBeep(freq=440,dur=0.12,volume=0.2){
+  if(!audioCtx) return;
+  const o = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  o.type='sine'; o.frequency.value=freq;
+  g.gain.value=volume;
+  o.connect(g); g.connect(audioCtx.destination);
+  o.start(); o.stop(audioCtx.currentTime + dur);
+}
+
+/* suspense rising tone */
+async function playSuspense(){
+  if(!audioCtx) return;
+  const o = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  o.type='sawtooth';
+  o.frequency.setValueAtTime(120, audioCtx.currentTime);
+  o.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 1.4);
+  g.gain.value = 0.08;
+  o.connect(g); g.connect(audioCtx.destination);
+  o.start();
+  setTimeout(()=>{ o.stop(); }, 1500);
+}
+/* victory chime */
+function playVictory(){
+  playBeep(880,0.08,0.18);
+  setTimeout(()=> playBeep(1100,0.12,0.12),80);
+  setTimeout(()=> playBeep(660,0.14,0.09),220);
+}
+
+/* confetti simple */
+function launchConfetti(n=25){
+  for(let i=0;i<n;i++){
+    const el = document.createElement('div'); el.style.position='fixed';
+    el.style.left = (15 + Math.random()*70) + '%'; el.style.top='-10px';
+    el.style.width='10px'; el.style.height='12px'; el.style.zIndex='9999';
+    el.style.background = ['#ffd54a','#ff6b6b','#6bd3ff','#7bed9f'][Math.floor(Math.random()*4)];
+    el.style.borderRadius='2px'; document.body.appendChild(el);
+    const dx = Math.random()*400 - 200; const dur = 1200 + Math.random()*800;
+    el.animate([{transform:'translateY(0) rotate(0)'},{transform:`translate(${dx}px, ${600+Math.random()*200}px) rotate(${Math.random()*720}deg)`}], {duration:dur,easing:'ease-out'});
+    setTimeout(()=> el.remove(), dur+50);
+  }
+}
+
+/* ========== FLOW ========== */
+let eligible = false;
+let currentEntry = null;
+
+/* form submit: check eligibility (amount >= 20) and not used phone */
+entryForm.addEventListener('submit', (e)=>{
+  e.preventDefault();
+  const name = nameInput.value.trim(); const phone = phoneInput.value.trim();
+  const amount = parseFloat(amountInput.value) || 0;
+  if(!name || !phone){ alert('اكتب الاسم ورقم الهاتف'); return; }
+  if(amount < 20){ alert('عشان تدخل السحب لازم تكون قيمة الشراء 20 JD أو أكثر.'); return; }
+  const used = getUsed();
+  if(used.includes(phone)){ alert('هذا الرقم سبق واستخدم للسحب.'); return; }
+  eligible = true;
+  currentEntry = {name, phone, amount};
+  statusEl.textContent = 'أنت مؤهل — اضغط الزر الغامض لإجراء السحب';
+  // visually highlight button
+  mysteryBtn.style.boxShadow = '0 18px 48px rgba(15,122,58,0.35)';
+});
+
+/* mystery button action */
+let drawing=false;
+mysteryBtn.addEventListener('click', async ()=>{
+  if(drawing) return;
+  if(!eligible){ alert('لا زلت غير مؤهل. املأ البيانات وتأكد من قيمة الشراء.'); return; }
+  drawing = true;
+  // start audio context on user gesture (compat)
+  if(audioCtx && audioCtx.state === 'suspended'){ await audioCtx.resume(); }
+  // suspense sound
+  playSuspense();
+  statusEl.textContent = 'يتم السحب... لحظة';
+  // small button animation
+  mysteryBtn.animate([{transform:'scale(1)'},{transform:'scale(0.95)'},{transform:'scale(1)'}],{duration:1200,easing:'ease-in-out'});
+  // delay while suspense plays
+  setTimeout(()=> {
+    const prize = pickWeighted(PRIZES);
+    // save entry
+    const entry = {
+      id: 'E'+Date.now()+Math.floor(Math.random()*8999),
+      name: currentEntry.name,
+      phone: currentEntry.phone,
+      amount: currentEntry.amount,
+      prizeId: prize.id,
+      prizeName: prize.name,
+      prizeEmoji: prize.icon,
+      ts: new Date().toISOString()
+    };
+    const entries = getEntries(); entries.push(entry); saveEntries(entries);
+    // mark used
+    const used = getUsed(); used.push(entry.phone); saveUsed(used);
+
+    // show result visually
+    resTitle.textContent = prize.premium ? 'تهانينا — جائزة مميزة!' : 'نتيجة السحب';
+    resBody.innerHTML = `<div style="width:96px;height:96px;border-radius:12px;background:linear-gradient(180deg,#fff,#f1ffe6);display:flex;align-items:center;justify-content:center;font-size:44px">${prize.icon}</div>
+      <div>
+        <div style="font-weight:900;font-size:18px">${prize.name}</div>
+        <div style="margin-top:6px;color:#2b6b3b">${entry.name} — ${entry.phone}</div>
+        <div style="margin-top:6px;font-size:13px;color:#567a56">التاريخ: ${new Date(entry.ts).toLocaleString()}</div>
+      </div>`;
+    resPanel.style.display='block';
+    statusEl.textContent = 'تم حفظ النتيجة محليًا.';
+    // play victory sound for premium
+    if(prize.premium || prize.id==='phone'){ playVictory(); launchConfetti(40); }
+    else playBeep(520, 0.08, 0.09);
+
+    // try webhook if provided
+    const webhook = webhookInput.value.trim();
+    if(webhook){
+      fetch(webhook, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(entry)})
+      .then(r=> { if(r.ok) statusEl.textContent += ' — تم إرسال النتيجة إلى الـ webhook.'; else statusEl.textContent += ' — الـ webhook رجع خطأ.'; })
+      .catch(()=> statusEl.textContent += ' — فشل إرسال الـ webhook (CORS أو خطأ).');
+    }
+
+    // prevent re-draw: disable button and form
+    mysteryBtn.style.pointerEvents='none'; mysteryBtn.style.opacity='0.7';
+    startBtn.disabled = true; nameInput.disabled = true; phoneInput.disabled = true; amountInput.disabled = true;
+    eligible = false; drawing=false;
+  }, 1500);
+});
+
+/* admin panel show */
+adminBtn.addEventListener('click', ()=> {
+  adminArea.style.display = adminArea.style.display === 'none' ? 'block' : 'none';
+});
+
+/* unlock admin */
+unlockAdmin.addEventListener('click', ()=>{
+  if(adminPassInput.value === ADMIN_PASS){
+    alert('تم فتح لوحة الإدارة — الآن يمكنك تحميل CSV أو مسح البيانات.');
+    // show real admin controls (they are already visible here)
+  }else alert('كلمة المرور غير صحيحة.');
+});
+
+/* download CSV */
+downloadCSV.addEventListener('click', ()=>{
+  const entries = getEntries();
+  if(entries.length === 0){ alert('لا توجد مشاركات بعد.'); return; }
+  const rows = [['id','name','phone','amount','prizeId','prizeName','prizeEmoji','ts'], ...entries.map(e=> [e.id,e.name,e.phone,e.amount,e.prizeId,e.prizeName,e.prizeEmoji,e.ts])];
+  const csv = rows.map(r => r.map(f => `"${String(f).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'}); const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'ashraf_entries.csv'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+});
+
+/* wipe data (admin) */
+wipeDataBtn.addEventListener('click', ()=>{
+  if(!confirm('هل تريد فعلاً مسح كل البيانات المحلية وإعادة السماح بالسحب؟')) return;
+  localStorage.removeItem(STORAGE_ENTRIES); localStorage.removeItem(STORAGE_USED);
+  alert('تم مسح البيانات المحلية.');
+  // reset UI
+  resPanel.style.display='none'; mysteryBtn.style.pointerEvents='auto'; mysteryBtn.style.opacity='1';
+  startBtn.disabled = false; nameInput.disabled = false; phoneInput.disabled = false; amountInput.disabled = false;
+  statusEl.textContent = 'تم مسح البيانات.';
+});
+
+/* boot status */
+(function boot(){
+  const used = getUsed();
+  if(used && used.length>0) statusEl.textContent = `يوجد ${used.length} رقمًا مسجلاً محليًا — كل رقم مرة واحدة فقط.`;
+  else statusEl.textContent = 'جاهز — املأ البيانات وادخل قيمة الشراء لتكون مؤهلًا.';
+})();
+</script>
+</body>
+</html>
